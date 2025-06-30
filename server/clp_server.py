@@ -1,26 +1,23 @@
 from flask import Flask, jsonify, request, abort, send_from_directory,send_file,make_response
 from flask_cors import CORS
-
 import os
 import sys
 import clip
 import torch
 from PIL import Image
-import os
-import os
-import sys
-import matplotlib.pyplot as plt
-from PIL import Image
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-_CORE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-print(_CORE_PATH)
-_CELEB_PATH = os.path.join(_CORE_PATH, 'celebrities')
-from talkToGemini import *
+#_CORE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+#print(_CORE_PATH)
+_CELEB_PATH = os.path.join(os.path.dirname(__file__), 'celebrities')
+print(_CELEB_PATH)
+input()
+#from talkToGemini import *
 
 app = Flask(__name__)
 _PORT = 5051
-_AI = FileToCaption()
+
+#_AI = FileToCaption()
 
 # cloudflared tunnel --url http://localhost:5051
 
@@ -37,10 +34,10 @@ def handle_text_file(full_path_ref):
         return content
     else:
         with open(txt_path, "w") as file:
-            print("AI ONES AGAIN !!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            text_to_save = _AI.getCaption(full_path_ref)
-            file.write(text_to_save)
-        return text_to_save
+            print("AI ONES AGAIN Not connected yet !")
+            #text_to_save = _AI.getCaption(full_path_ref)
+            #file.write(text_to_save)
+        #return text_to_save
     
 
 nams = 20
@@ -122,30 +119,10 @@ def search(query, top_k=5):
         
         parent_folder = os.path.basename(os.path.dirname(pics[p]))
 
-        result = "http://127.0.0.1:5051/images/"+result
+        result = "/images/"+result
         search_data[result] = {"name":parent_folder}#,"similarity":best_values[p]}
         
     return search_data
-
-
-
-def show_images(image_paths, titles=None):
-    import matplotlib.pyplot as plt
-    from PIL import Image
-
-    n = len(image_paths)
-    plt.figure(figsize=(3 * n, 4))
-
-    for i, path in enumerate(image_paths):
-        img = Image.open(path)
-        plt.subplot(1, n, i + 1)
-        plt.imshow(img)
-        plt.axis('off')
-        if titles:
-            plt.title(titles[i], fontsize=12)
-
-    plt.tight_layout()
-    plt.show()
 
 
 
