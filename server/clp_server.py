@@ -17,6 +17,19 @@ print(_CELEB_PATH)
 app = Flask(__name__)
 _PORT = 5051
 
+nams = 20
+folders = []
+images_pth=[]
+
+celeb_path = {}
+
+image_files = []
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model, preprocess = None,None
+
+image_embeddings = None
+
 #_AI = FileToCaption()
 
 # cloudflared tunnel --url http://localhost:5051
@@ -39,64 +52,10 @@ def handle_text_file(full_path_ref):
             #file.write(text_to_save)
         #return text_to_save
     
-
-nams = 20
-folders = []
-for name in os.listdir(_CELEB_PATH):
-    if nams == 0:
-        break
-    
-    if os.path.isdir(os.path.join(_CELEB_PATH, name)):
-        folders.append(name)
-        nams-=1
-print(folders)
-
-images_pth=[]
-
-celeb_path = {}
-for ceb_fold in folders:    
-
-    for f in os.listdir(os.path.join(_CELEB_PATH,ceb_fold)):
-        if f.endswith(('.png', '.jpg', '.jpeg')):
-            fold_ = os.path.join(_CELEB_PATH,ceb_fold)
-            images_pth.append(os.path.join(fold_, f))
-            if ceb_fold == "ap":
-                continue
-            if "reference" in f:
-                full_path_ref =  os.path.join(fold_, f)
-                parts = full_path_ref.split('/')
-                result = '/'.join(parts[-2:])
-                print('-'*40)
-                capt = handle_text_file(full_path_ref)
-                #print(f"CAPTION : {capt}")
-
-                celeb_path[ceb_fold] = { 
-                    "path" : "http://127.0.0.1:5051/images/"+result, 
-                    "testPrompt":capt,
-                }
-print("{{{}}}"*20)
-print(celeb_path)
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-model, preprocess = clip.load("ViT-B/32", device=device)
-
-
-image_embeddings = []
-image_files = []
-
-for path in images_pth:
-    image = preprocess(Image.open(path)).unsqueeze(0).to(device)
-    with torch.no_grad():
-        embedding = model.encode_image(image)
-        embedding /= embedding.norm(dim=-1, keepdim=True)
-    image_embeddings.append(embedding.cpu())
-    image_files.append(path)
-
 # Stack into a tensor
-image_embeddings = torch.vstack(image_embeddings)
-
 
 def search(query, top_k=5):
+    global model, preprocess, image_embeddings
     with torch.no_grad():
         text = clip.tokenize([query]).to(device)
         text_features = model.encode_text(text)
@@ -124,8 +83,6 @@ def search(query, top_k=5):
         
     return search_data
 
-
-
 @app.route('/images/<path:filename>')
 def get_image(filename):
     #return send_from_directory(_CELEB_PATH, filename)
@@ -138,7 +95,7 @@ def listOfcelebs():
     return jsonify(celeb_path)
 
 @app.route('/',methods=['GET'])
-def listOfcelebs():
+def helloworld():
     return jsonify("SPOTME by ANATOLII POSTELNYK")
 
 
@@ -153,5 +110,51 @@ def searchWithAi():
     return results
 
 if __name__ == '__main__':
+
+    for name in os.listdir(_CELEB_PATH):
+        if nams == 0:
+            break
+        
+        if os.path.isdir(os.path.join(_CELEB_PATH, name)):
+            folders.append(name)
+            nams-=1
+    print(folders)
+
+    for ceb_fold in folders:    
+        for f in os.listdir(os.path.join(_CELEB_PATH,ceb_fold)):
+            if f.endswith(('.png', '.jpg', '.jpeg')):
+                fold_ = os.path.join(_CELEB_PATH,ceb_fold)
+                images_pth.append(os.path.join(fold_, f))
+                if ceb_fold == "ap":
+                    continue
+                if "reference" in f:
+                    full_path_ref =  os.path.join(fold_, f)
+                    parts = full_path_ref.split('/')
+                    result = '/'.join(parts[-2:])
+                    #print('-'*40)
+                    capt = handle_text_file(full_path_ref)
+                    #print(f"CAPTION : {capt}")
+
+                    celeb_path[ceb_fold] = { 
+                        "path" : "/images/"+result, 
+                        "testPrompt":capt,
+                    }
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model, preprocess = clip.load("ViT-B/32", device=device)
+    image_embeddings = []
+    for path in images_pth:
+        image = preprocess(Image.open(path)).unsqueeze(0).to(device)
+        with torch.no_grad():
+            embedding = model.encode_image(image)
+            embedding /= embedding.norm(dim=-1, keepdim=True)
+        image_embeddings.append(embedding.cpu())
+        image_files.append(path)
+
+ 
+
+    image_embeddings = torch.vstack(image_embeddings)
+
+
     CORS(app)
-    app.run(host='0.0.0.0', port=_PORT, debug=True)
+    app.run(host='0.0.0.0', port=_PORT)
