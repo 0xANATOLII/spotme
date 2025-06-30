@@ -1,0 +1,43 @@
+# ====================
+# Global
+# ====================
+.env
+*.env
+*.log
+.DS_Store
+
+# ====================
+# Client (Next.js)
+# ====================
+client/node_modules
+client/.next
+client/out
+client/.env
+client/.env.local
+client/.env.*.local
+
+# ====================
+# Server (Flask - Python)
+# ====================
+server/__pycache__/
+server/*.pyc
+server/*.pyo
+server/*.pyd
+server/env/
+server/venv/
+server/.env
+server/.venv
+server/.pytest_cache/
+server/instance/
+server/.mypy_cache/
+server/.idea/
+server/.vscode/
+server/*.sqlite3
+server/*.db
+
+# ====================
+# OS Specific
+# ====================
+Thumbs.db
+ehthumbs.db
+
