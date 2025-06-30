@@ -11,7 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 #print(_CORE_PATH)
 _CELEB_PATH = os.path.join(os.path.dirname(__file__), 'celebrities')
 print(_CELEB_PATH)
-input()
+
 #from talkToGemini import *
 
 app = Flask(__name__)
@@ -133,9 +133,13 @@ def get_image(filename):
     response.headers['Cache-Control'] = 'public, max-age=31536000'  # 1 year
     return response
 
-@app.route('/',methods=['GET'])
+@app.route('/list',methods=['GET'])
 def listOfcelebs():
     return jsonify(celeb_path)
+
+@app.route('/',methods=['GET'])
+def listOfcelebs():
+    return jsonify("SPOTME by ANATOLII POSTELNYK")
 
 
 @app.route('/', methods=['POST'])
